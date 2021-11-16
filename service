@@ -22,20 +22,19 @@ use function Swoole\Coroutine\run;
 
 // 此行代码后，文件操作，sleep，Mysqli，PDO，streams等都变成异步IO，见'一键协程化'章节
 Runtime::enableCoroutine();
-$s = microtime(true);
+
+Log::info('Handle service start time ' . (new DateTime)->format('Y-m-d H:i:s'));
 
 // Swoole\Coroutine\run()见'协程容器'章节
 run(function () {
-    // i just want to sleep...
-    for ($c = 100; $c--;) {
+    Log::info('start coroutine run id: ' . Swoole\Coroutine::getCid());
+    for ($c = 10; $c--;) {
         Coroutine::create(function () {
-            Log::info('use CoroutineId: ' . Swoole\Coroutine::getCid());
-            for ($n = 100; $n--;) {
+            Log::info('start coroutine cid: ' . Swoole\Coroutine::getCid());
+            while (true) {
                 usleep(1000);
             }
         });
     }
 });
-
-Log::go('use ' . (microtime(true) - $s) . ' s');
 

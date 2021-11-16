@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+// +----------------------------------------------------------------------
+// | CodeEngine
+// +----------------------------------------------------------------------
+// | Copyright 艾邦
+// +----------------------------------------------------------------------
+// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// +----------------------------------------------------------------------
+// | Author: TaoGe <liangtao.gz@foxmail.com>
+// +----------------------------------------------------------------------
+// | Date: 2021/4/20 10:28
+// +----------------------------------------------------------------------
+
+// vendor
+require 'vendor/autoload.php';
+
+use Swoole\Runtime;
+use Swoole\Coroutine;
+use V2dmIM\Core\utils\log\Log;
+use function Swoole\Coroutine\run;
+
+// 此行代码后，文件操作，sleep，Mysqli，PDO，streams等都变成异步IO，见'一键协程化'章节
+Runtime::enableCoroutine();
+$s = microtime(true);
+
+// Swoole\Coroutine\run()见'协程容器'章节
+run(function () {
+    // i just want to sleep...
+    for ($c = 100; $c--;) {
+        Coroutine::create(function () {
+            Log::info('use CoroutineId: ' . Swoole\Coroutine::getCid());
+            for ($n = 100; $n--;) {
+                usleep(1000);
+            }
+        });
+    }
+});
+
+Log::go('use ' . (microtime(true) - $s) . ' s');
+

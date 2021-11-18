@@ -19,6 +19,7 @@ use Swoole\Process;
 use Swoole\Runtime;
 use Swoole\Coroutine;
 use V2dmIM\Core\utils\log\Log;
+use V2dmIM\Handle\Auth;
 use function Swoole\Coroutine\run;
 
 // 此行代码后，文件操作，sleep，Mysqli，PDO，streams等都变成异步IO，见'一键协程化'章节
@@ -31,19 +32,33 @@ Log::info('Handle version: ' . V2DMIM_VERSION);
 
 // Swoole\Coroutine\run()见'协程容器'章节
 run(function () {
-    Log::info('start coroutine run id: ' . Swoole\Coroutine::getCid());
-
+    Log::info('start coroutine container id: ' . Swoole\Coroutine::getCid());
+    // 服务列表
+    $serviceList = ['Auth' => Auth::class];
+    // 服务注册实例列表
+    $registerEtcdList = [];
     static $running = true;
     // 收到 SIGTERM信 号关闭服务
-    Process::signal(SIGTERM, function () use (&$running) {
+    Process::signal(SIGTERM, function () use (&$registerEtcdList, &$running) {
         Log::info('收到 SIGTERM 信号关闭服务');
         $running = false;
+        foreach ($registerEtcdList as $key => $service) {
+            $service->unregister();
+            Log::info($key . ' service unregisterEtcd.');
+        }
     });
-    for ($c = 10; $c--;) {
-        Coroutine::create(function () use (&$running) {
-            Log::info('start coroutine cid: ' . Swoole\Coroutine::getCid());
+    foreach ($serviceList as $key => $service) {
+        Coroutine::create(function () use ($key, $service, &$registerEtcdList, &$running) {
+            Log::info($key . ' service start coroutine cid: ' . Swoole\Coroutine::getCid() . ' pid: ' . Swoole\Coroutine::getPcid());
+            Coroutine::create(function () use ($key, $service, &$registerEtcdList) {
+                Log::info($key . ' registerEtcd start coroutine cid: ' . Swoole\Coroutine::getCid() . ' pid: ' . Swoole\Coroutine::getPcid());
+                $etcd                   = new $service;
+                $registerEtcdList[$key] =& $etcd->register;
+                $etcd->registerEtcd();
+            });
             while ($running) {
-                usleep(1000);
+                usleep(3000000);
+                Log::info('run ' . $key . '...');
             }
         });
     }

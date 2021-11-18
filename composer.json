@@ -23,7 +23,7 @@
     "ext-zlib": "*",
     "ext-mbstring": "*",
     "liangtao/v2dmim-core": "@dev",
-    "zircote/swagger-php": "^3.3"
+    "liangtao/etcd-php": "^1.0"
   },
   "require-dev": {
     "swoole/ide-helper": "@dev",

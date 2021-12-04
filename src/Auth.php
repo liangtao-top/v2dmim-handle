@@ -24,7 +24,7 @@ class Auth extends Etcd
 
     public function registerEtcd(): void
     {
-        $ip   = '127.0.0.1';
+        $ip = '127.0.0.1';
         $port = 10120;
         Log::info("Auth service registration succeeded, ip: $ip port: $port");
         $this->register = new Register('etcd:2379', 'v3beta');
@@ -33,6 +33,11 @@ class Auth extends Etcd
         } catch (Throwable $e) {
             Log::error($e->getMessage());
         }
+    }
+
+    public function __construct()
+    {
+
     }
 
 }

@@ -23,7 +23,8 @@
     "ext-zlib": "*",
     "ext-mbstring": "*",
     "liangtao/v2dmim-core": "@dev",
-    "liangtao/etcd-php": "^1.0"
+    "liangtao/etcd-php": "^1.0",
+    "liangtao/kafka-php": "1.0.1"
   },
   "require-dev": {
     "swoole/ide-helper": "@dev",

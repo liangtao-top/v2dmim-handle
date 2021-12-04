@@ -15,6 +15,8 @@
 // vendor
 require 'vendor/autoload.php';
 
+use Kafka\Consumer;
+use Kafka\ConsumerConfig;
 use Swoole\Process;
 use Swoole\Runtime;
 use Swoole\Coroutine;
@@ -47,20 +49,35 @@ run(function () {
             Log::info($key . ' service unregisterEtcd.');
         }
     });
-    foreach ($serviceList as $key => $service) {
-        Coroutine::create(function () use ($key, $service, &$registerEtcdList, &$running) {
-            Log::info($key . ' service start coroutine cid: ' . Swoole\Coroutine::getCid() . ' pid: ' . Swoole\Coroutine::getPcid());
-            Coroutine::create(function () use ($key, $service, &$registerEtcdList) {
-                Log::info($key . ' registerEtcd start coroutine cid: ' . Swoole\Coroutine::getCid() . ' pid: ' . Swoole\Coroutine::getPcid());
-                $etcd                   = new $service;
-                $registerEtcdList[$key] =& $etcd->register;
-                $etcd->registerEtcd();
-            });
-            while ($running) {
-                usleep(3000000);
-                Log::info('run ' . $key . '...');
-            }
-        });
-    }
+//    foreach ($serviceList as $key => $service) {
+//        Coroutine::create(function () use ($key, $service, &$registerEtcdList, &$running) {
+//            Log::info($key . ' service start coroutine cid: ' . Swoole\Coroutine::getCid() . ' pid: ' . Swoole\Coroutine::getPcid());
+//            Coroutine::create(function () use ($key, $service, &$registerEtcdList) {
+//                Log::info($key . ' registerEtcd start coroutine cid: ' . Swoole\Coroutine::getCid() . ' pid: ' . Swoole\Coroutine::getPcid());
+//                $etcd                   = new $service;
+//                $registerEtcdList[$key] =& $etcd->register;
+//                $etcd->registerEtcd();
+//            });
+//            while ($running) {
+//                usleep(3000000);
+//                Log::info('run ' . $key . '...');
+//            }
+//        });
+//    }
+
+    $config = ConsumerConfig::getInstance();
+    $config->setMetadataRefreshIntervalMs(config('kafka.metadata_refresh_interval_ms'));
+    $config->setMetadataBrokerList(config('kafka.metadata_broker_list'));
+    $config->setBrokerVersion(config('kafka.broker_version'));
+    $config->setGroupId("0");
+    $config->setTopics(array('userRegister'));
+    //$config->setOffsetReset('earliest');
+    $consumer = new Consumer();
+    $consumer->start(function ($topic, $part, $message) {
+        var_dump($topic);
+        var_dump($part);
+        var_dump($message);
+    });
+
 });
 
